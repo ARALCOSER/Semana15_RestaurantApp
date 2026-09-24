@@ -70,5 +70,11 @@
         "nombre": "costilla BBQ",
         "categoria": "plato fuerte",
         "precio": 12.0
+    },
+    {
+        "codigo": "013",
+        "nombre": "trucha a la piedra",
+        "categoria": "plato fuerte",
+        "precio": 8.0
     }
 ]
