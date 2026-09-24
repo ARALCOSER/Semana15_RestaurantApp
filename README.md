@@ -179,7 +179,11 @@ Contraseña: `1234`
 
 También puede usarse:
 
+
 Usuario: `caja1`
+Contraseña: `abcd`
+
+Usuario: `caja2`
 Contraseña: `abcd`
 
 ## ⚠️ Nota educativa
