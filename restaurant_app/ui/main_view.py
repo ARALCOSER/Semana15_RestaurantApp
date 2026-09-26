@@ -1,7 +1,10 @@
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
-from tkinter import font as tkfont
+from tkinter import filedialog, font as tkfont
 from tkinter import messagebox, ttk
+
+from servicios.reporte_servicio import ReporteServicio
 
 class MainView(tk.Frame):
     def __init__(self, master, restaurante_servicio, usuario_actual, al_cerrar_sesion):
@@ -9,6 +12,8 @@ class MainView(tk.Frame):
         self.restaurante_servicio = restaurante_servicio
         self.usuario_actual = usuario_actual
         self.al_cerrar_sesion = al_cerrar_sesion
+        ruta_base = Path(__file__).resolve().parent.parent
+        self.reporte_servicio = ReporteServicio(ruta_base / "assets" / "logo" / "logo.png")
         self.contenido = None
         self.etiqueta_estado = None
         self.botones_menu = {}
@@ -492,6 +497,14 @@ class MainView(tk.Frame):
             self.registrar_venta,
             "Accion.TButton",
             "add.png",
+        ).pack(fill="x", pady=(0, 7))
+
+        self.crear_boton(
+            acciones,
+            "Generar reporte PDF",
+            self.generar_reporte_ventas,
+            "Secundario.TButton",
+            "pdf.png",
         ).pack(fill="x")
 
         listado = self.crear_listado(cuerpo, "Ventas registradas", usar_grid=True)
@@ -544,6 +557,40 @@ class MainView(tk.Frame):
             messagebox.showinfo("Ventas", "Venta registrada correctamente.")
         except ValueError as error:
             messagebox.showerror("Ventas", str(error))
+
+    def generar_reporte_ventas(self):
+        ventas = self.restaurante_servicio.listar_ventas()
+        if not ventas:
+            messagebox.showinfo("Ventas", "No existen ventas registradas para generar el reporte.")
+            return
+
+        nombre_archivo = datetime.now().strftime("reporte_ventas_%Y%m%d_%H%M.pdf")
+        ruta_salida = filedialog.asksaveasfilename(
+            title="Guardar reporte de ventas",
+            defaultextension=".pdf",
+            filetypes=(("Archivos PDF", "*.pdf"),),
+            initialfile=nombre_archivo,
+        )
+
+        if not ruta_salida:
+            return
+
+        try:
+            # La interfaz solicita la ruta; el servicio construye el PDF.
+            ruta_generada = self.reporte_servicio.generar_reporte_ventas(
+                ruta_salida,
+                ventas,
+                self.restaurante_servicio.listar_usuarios(),
+                self.restaurante_servicio.listar_productos(),
+            )
+            messagebox.showinfo("Ventas", f"Reporte generado correctamente.\n{ruta_generada}")
+        except ImportError:
+            messagebox.showerror(
+                "Ventas",
+                "No fue posible generar el reporte. Instale ReportLab con: pip install reportlab",
+            )
+        except Exception:
+            messagebox.showerror("Ventas", "No fue posible generar el reporte.")
 
     def limpiar_formulario_venta(self):
         assert self.usuario_venta_combo is not None
